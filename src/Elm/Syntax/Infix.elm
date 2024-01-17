@@ -1,6 +1,6 @@
 module Elm.Syntax.Infix exposing
     ( Infix, InfixDirection(..)
-    , encode, encodeDirection, decoder, decodeDirection
+    , encode, encodeDirection
     )
 
 {-|
@@ -18,7 +18,6 @@ module Elm.Syntax.Infix exposing
 -}
 
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -65,36 +64,3 @@ encodeDirection d =
 
         Non ->
             JE.string "non"
-
-
-{-| Decode an infix
--}
-decoder : Decoder Infix
-decoder =
-    JD.map4 Infix
-        (JD.field "direction" (Node.decoder decodeDirection))
-        (JD.field "precedence" (Node.decoder JD.int))
-        (JD.field "operator" (Node.decoder JD.string))
-        (JD.field "function" (Node.decoder JD.string))
-
-
-{-| Decode a infix direction
--}
-decodeDirection : Decoder InfixDirection
-decodeDirection =
-    JD.string
-        |> JD.andThen
-            (\v ->
-                case v of
-                    "left" ->
-                        JD.succeed Left
-
-                    "right" ->
-                        JD.succeed Right
-
-                    "non" ->
-                        JD.succeed Non
-
-                    _ ->
-                        JD.fail "Invalid direction"
-            )

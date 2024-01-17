@@ -1,6 +1,6 @@
 module Elm.Syntax.TypeAnnotation exposing
     ( TypeAnnotation(..), RecordDefinition, RecordField
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents the type annotation syntax.
@@ -20,10 +20,9 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -131,60 +130,3 @@ encodeRecordField ( name, ref ) =
         [ ( "name", Node.encode JE.string name )
         , ( "typeAnnotation", Node.encode encode ref )
         ]
-
-
-decodeModuleNameAndName : Decoder ( ModuleName, String )
-decodeModuleNameAndName =
-    JD.map2 Tuple.pair
-        (JD.field "moduleName" <| ModuleName.decoder)
-        (JD.field "name" <| JD.string)
-
-
-{-| JSON decoder for a `TypeAnnotation` syntax element.
--}
-decoder : Decoder TypeAnnotation
-decoder =
-    JD.lazy
-        (\() ->
-            decodeTyped
-                [ ( "generic", JD.map GenericType (JD.field "value" JD.string) )
-                , ( "typed"
-                  , JD.map2 Typed
-                        (JD.field "moduleNameAndName" <| Node.decoder decodeModuleNameAndName)
-                        (JD.field "args" (JD.list nestedDecoder))
-                  )
-                , ( "unit", JD.succeed Unit )
-                , ( "tupled", JD.map Tupled (JD.field "values" (JD.list nestedDecoder)) )
-                , ( "function"
-                  , JD.map2 FunctionTypeAnnotation
-                        (JD.field "left" nestedDecoder)
-                        (JD.field "right" nestedDecoder)
-                  )
-                , ( "record", JD.map Record (JD.field "value" recordDefinitionDecoder) )
-                , ( "genericRecord"
-                  , JD.map2 GenericRecord
-                        (JD.field "name" <| Node.decoder JD.string)
-                        (JD.field "values" <| Node.decoder recordDefinitionDecoder)
-                  )
-                ]
-        )
-
-
-nestedDecoder : Decoder (Node TypeAnnotation)
-nestedDecoder =
-    JD.lazy (\() -> Node.decoder decoder)
-
-
-recordDefinitionDecoder : Decoder RecordDefinition
-recordDefinitionDecoder =
-    JD.lazy (\() -> JD.list <| Node.decoder recordFieldDecoder)
-
-
-recordFieldDecoder : Decoder RecordField
-recordFieldDecoder =
-    JD.lazy
-        (\() ->
-            JD.map2 Tuple.pair
-                (JD.field "name" <| Node.decoder JD.string)
-                (JD.field "typeAnnotation" nestedDecoder)
-        )

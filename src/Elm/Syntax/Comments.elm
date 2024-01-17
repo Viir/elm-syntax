@@ -1,6 +1,6 @@
 module Elm.Syntax.Comments exposing
     ( Comment
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents both single and multi line comments in Elm. For example:
@@ -28,7 +28,6 @@ module Elm.Syntax.Comments exposing
 
 -}
 
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -43,10 +42,3 @@ type alias Comment =
 encode : Comment -> Value
 encode =
     JE.string
-
-
-{-| JSON decoder for a `Comment` syntax element.
--}
-decoder : Decoder Comment
-decoder =
-    JD.string

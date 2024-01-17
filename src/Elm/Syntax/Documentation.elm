@@ -1,6 +1,6 @@
 module Elm.Syntax.Documentation exposing
     ( Documentation
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents documentation comments in Elm.
@@ -17,7 +17,6 @@ module Elm.Syntax.Documentation exposing
 
 -}
 
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -36,10 +35,3 @@ type alias Documentation =
 encode : Documentation -> Value
 encode =
     JE.string
-
-
-{-| JSON decoder for a `Documentation` syntax element.
--}
-decoder : Decoder Documentation
-decoder =
-    JD.string

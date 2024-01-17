@@ -1,7 +1,7 @@
 module Elm.Syntax.Exposing exposing
     ( Exposing(..), TopLevelExpose(..), ExposedType
     , exposesFunction, operators
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents the exposing declaration for both imports and module headers.
@@ -27,10 +27,9 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -123,16 +122,6 @@ encode exp =
             encodeTyped "explicit" (JE.list encodeTopLevelExpose l)
 
 
-{-| JSON decoder for an `Exposing` syntax element.
--}
-decoder : Decoder Exposing
-decoder =
-    decodeTyped
-        [ ( "all", Range.decoder |> JD.map All )
-        , ( "explicit", JD.list topLevelExposeDecoder |> JD.map Explicit )
-        ]
-
-
 encodeTopLevelExpose : Node TopLevelExpose -> Value
 encodeTopLevelExpose =
     Node.encode
@@ -167,22 +156,3 @@ encodeExposedType { name, open } =
         [ ( "name", JE.string name )
         , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
         ]
-
-
-topLevelExposeDecoder : Decoder (Node TopLevelExpose)
-topLevelExposeDecoder =
-    Node.decoder
-        (decodeTyped
-            [ ( "infix", JD.map InfixExpose (JD.field "name" JD.string) )
-            , ( "function", JD.map FunctionExpose (JD.field "name" JD.string) )
-            , ( "typeOrAlias", JD.map TypeOrAliasExpose (JD.field "name" JD.string) )
-            , ( "typeexpose", JD.map TypeExpose exposedTypeDecoder )
-            ]
-        )
-
-
-exposedTypeDecoder : Decoder ExposedType
-exposedTypeDecoder =
-    JD.map2 ExposedType
-        (JD.field "name" JD.string)
-        (JD.field "open" (JD.nullable Range.decoder))

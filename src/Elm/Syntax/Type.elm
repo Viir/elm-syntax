@@ -1,6 +1,6 @@
 module Elm.Syntax.Type exposing
     ( Type, ValueConstructor
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents custom types.
@@ -27,7 +27,6 @@ For example:
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -72,21 +71,3 @@ encodeValueConstructor { name, arguments } =
         [ ( "name", Node.encode JE.string name )
         , ( "arguments", JE.list (Node.encode TypeAnnotation.encode) arguments )
         ]
-
-
-{-| JSON decoder for a `Type` syntax element.
--}
-decoder : Decoder Type
-decoder =
-    JD.map4 Type
-        (JD.field "documentation" <| JD.nullable <| Node.decoder JD.string)
-        (JD.field "name" <| Node.decoder JD.string)
-        (JD.field "generics" (JD.list (Node.decoder JD.string)))
-        (JD.field "constructors" (JD.list (Node.decoder valueConstructorDecoder)))
-
-
-valueConstructorDecoder : Decoder ValueConstructor
-valueConstructorDecoder =
-    JD.map2 ValueConstructor
-        (JD.field "name" (Node.decoder JD.string))
-        (JD.field "arguments" (JD.list (Node.decoder TypeAnnotation.decoder)))

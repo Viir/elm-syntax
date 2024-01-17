@@ -8,7 +8,6 @@ import Elm.Parser.Samples as Samples
 import Elm.RawFile as RawFile exposing (RawFile)
 import Elm.Syntax.Node exposing (Node(..))
 import Expect
-import Json.Decode
 import Json.Encode
 import Test exposing (..)
 

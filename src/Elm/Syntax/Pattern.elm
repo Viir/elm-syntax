@@ -1,7 +1,7 @@
 module Elm.Syntax.Pattern exposing
     ( Pattern(..), QualifiedNameRef
     , moduleNames
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents the patterns.
@@ -27,10 +27,9 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -223,50 +222,3 @@ encode pattern =
                     [ ( "value", Node.encode encode p1 )
                     ]
                 )
-
-
-{-| JSON decoder for a `Pattern` syntax element.
--}
-decoder : Decoder Pattern
-decoder =
-    JD.lazy
-        (\() ->
-            decodeTyped
-                [ ( "all", JD.succeed AllPattern )
-                , ( "unit", JD.succeed UnitPattern )
-                , ( "char", JD.field "value" decodeChar |> JD.map CharPattern )
-                , ( "string", JD.field "value" JD.string |> JD.map StringPattern )
-                , ( "hex", JD.int |> JD.map HexPattern )
-                , ( "int", JD.field "value" JD.int |> JD.map IntPattern )
-                , ( "float", JD.field "value" JD.float |> JD.map FloatPattern )
-                , ( "tuple", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map TuplePattern )
-                , ( "record", JD.field "value" (JD.list (Node.decoder JD.string)) |> JD.map RecordPattern )
-                , ( "uncons", JD.map2 UnConsPattern (JD.field "left" (Node.decoder decoder)) (JD.field "right" (Node.decoder decoder)) )
-                , ( "list", JD.field "value" (JD.list (Node.decoder decoder)) |> JD.map ListPattern )
-                , ( "var", JD.field "value" JD.string |> JD.map VarPattern )
-                , ( "named", JD.map2 NamedPattern (JD.field "qualified" decodeQualifiedNameRef) (JD.field "patterns" (JD.list (Node.decoder decoder))) )
-                , ( "as", JD.map2 AsPattern (JD.field "pattern" (Node.decoder decoder)) (JD.field "name" (Node.decoder JD.string)) )
-                , ( "parentisized", JD.map ParenthesizedPattern (JD.field "value" (Node.decoder decoder)) )
-                ]
-        )
-
-
-decodeQualifiedNameRef : Decoder QualifiedNameRef
-decodeQualifiedNameRef =
-    JD.map2 QualifiedNameRef
-        (JD.field "moduleName" ModuleName.decoder)
-        (JD.field "name" JD.string)
-
-
-decodeChar : Decoder Char
-decodeChar =
-    JD.string
-        |> JD.andThen
-            (\s ->
-                case String.uncons s of
-                    Just ( c, _ ) ->
-                        JD.succeed c
-
-                    Nothing ->
-                        JD.fail "Not a char"
-            )

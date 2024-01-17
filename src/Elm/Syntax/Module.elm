@@ -1,7 +1,7 @@
 module Elm.Syntax.Module exposing
     ( Module(..), DefaultModuleData, EffectModuleData
     , exposingList, moduleName, isPortModule, isEffectModule
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents module definitions in Elm.
@@ -23,11 +23,10 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Exposing as Exposing exposing (Exposing)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -146,30 +145,3 @@ encodeDefaultModuleData moduleData =
         [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
         , ( "exposingList", Node.encode Exposing.encode moduleData.exposingList )
         ]
-
-
-{-| JSON decoder for a `Module` syntax element.
--}
-decoder : Decoder Module
-decoder =
-    decodeTyped
-        [ ( "normal", decodeDefaultModuleData |> JD.map NormalModule )
-        , ( "port", decodeDefaultModuleData |> JD.map PortModule )
-        , ( "effect", decodeEffectModuleData |> JD.map EffectModule )
-        ]
-
-
-decodeDefaultModuleData : Decoder DefaultModuleData
-decodeDefaultModuleData =
-    JD.map2 DefaultModuleData
-        (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
-        (JD.field "exposingList" <| Node.decoder Exposing.decoder)
-
-
-decodeEffectModuleData : Decoder EffectModuleData
-decodeEffectModuleData =
-    JD.map4 EffectModuleData
-        (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
-        (JD.field "exposingList" <| Node.decoder Exposing.decoder)
-        (JD.field "command" (JD.nullable <| Node.decoder JD.string))
-        (JD.field "subscription" (JD.nullable <| Node.decoder JD.string))

@@ -1,6 +1,6 @@
 module Elm.Syntax.File exposing
     ( File
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents a whole Elm file.
@@ -22,7 +22,6 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Import as Import exposing (Import)
 import Elm.Syntax.Module as Module exposing (Module)
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -46,14 +45,3 @@ encode { moduleDefinition, imports, declarations, comments } =
         , ( "declarations", JE.list (Node.encode Declaration.encode) declarations )
         , ( "comments", JE.list (Node.encode Comments.encode) comments )
         ]
-
-
-{-| JSON decoder for a `File` syntax element.
--}
-decoder : Decoder File
-decoder =
-    JD.map4 File
-        (JD.field "moduleDefinition" (Node.decoder Module.decoder))
-        (JD.field "imports" (JD.list (Node.decoder Import.decoder)))
-        (JD.field "declarations" (JD.list (Node.decoder Declaration.decoder)))
-        (JD.field "comments" (JD.list (Node.decoder Comments.decoder)))

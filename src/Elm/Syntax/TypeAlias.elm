@@ -1,6 +1,6 @@
 module Elm.Syntax.TypeAlias exposing
     ( TypeAlias
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents type aliases.
@@ -28,7 +28,6 @@ For example:
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -57,14 +56,3 @@ encode { documentation, name, generics, typeAnnotation } =
         , ( "generics", JE.list (Node.encode JE.string) generics )
         , ( "typeAnnotation", Node.encode TypeAnnotation.encode typeAnnotation )
         ]
-
-
-{-| JSON decoder for a `Declaration` syntax element.
--}
-decoder : Decoder TypeAlias
-decoder =
-    JD.map4 TypeAlias
-        (JD.field "documentation" (JD.nullable <| Node.decoder Documentation.decoder))
-        (JD.field "name" <| Node.decoder JD.string)
-        (JD.field "generics" (JD.list <| Node.decoder JD.string))
-        (JD.field "typeAnnotation" (Node.decoder TypeAnnotation.decoder))

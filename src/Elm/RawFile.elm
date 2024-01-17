@@ -1,7 +1,7 @@
 module Elm.RawFile exposing
     ( RawFile
     , moduleName, imports
-    , encode, decoder
+    , encode
     )
 
 {-|
@@ -23,7 +23,6 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Module as Module
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode exposing (Value)
 
 
@@ -52,10 +51,3 @@ imports (InternalRawFile.Raw file) =
 encode : RawFile -> Value
 encode (InternalRawFile.Raw file) =
     File.encode file
-
-
-{-| JSON decoder for a `RawFile` syntax element.
--}
-decoder : Decoder RawFile
-decoder =
-    JD.map InternalRawFile.Raw File.decoder

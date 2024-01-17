@@ -1,7 +1,7 @@
 module Elm.Syntax.Expression exposing
     ( Expression(..), Lambda, LetBlock, LetDeclaration(..), RecordSetter, CaseBlock, Cases, Case, Function, FunctionImplementation
     , functionRange, isLambda, isLet, isIfElse, isCase, isOperatorApplication
-    , encode, encodeFunction, decoder, functionDecoder
+    , encode, encodeFunction
     )
 
 {-| This syntax represents all that you can express in Elm.
@@ -24,7 +24,7 @@ Although it is a easy and simple language, you can express a lot! See the `Expre
 
 -}
 
-import Elm.Json.Util exposing (decodeTyped, encodeTyped)
+import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Infix as Infix exposing (InfixDirection)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
@@ -32,7 +32,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature as Signature exposing (Signature)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -435,160 +434,3 @@ encodeLambda { args, expression } =
         [ ( "patterns", JE.list (Node.encode Pattern.encode) args )
         , ( "expression", Node.encode encode expression )
         ]
-
-
-decodeNested : Decoder (Node Expression)
-decodeNested =
-    JD.lazy (\() -> Node.decoder decoder)
-
-
-{-| JSON decoder for an `Expression` syntax element.
--}
-decoder : Decoder Expression
-decoder =
-    JD.lazy
-        (\() ->
-            decodeTyped
-                [ ( "unit", JD.succeed UnitExpr )
-                , ( "application", JD.list decodeNested |> JD.map Application )
-                , ( "operatorapplication", decodeOperatorApplication )
-                , ( "functionOrValue", JD.map2 FunctionOrValue (JD.field "moduleName" ModuleName.decoder) (JD.field "name" JD.string) )
-                , ( "ifBlock", JD.map3 IfBlock (JD.field "clause" decodeNested) (JD.field "then" decodeNested) (JD.field "else" decodeNested) )
-                , ( "prefixoperator", JD.string |> JD.map PrefixOperator )
-                , ( "operator", JD.string |> JD.map Operator )
-                , ( "hex", JD.int |> JD.map Hex )
-                , ( "integer", JD.int |> JD.map Integer )
-                , ( "float", JD.float |> JD.map Floatable )
-                , ( "negation", decodeNested |> JD.map Negation )
-                , ( "literal", JD.string |> JD.map Literal )
-                , ( "charLiteral", decodeChar |> JD.map CharLiteral )
-                , ( "tupled", JD.list decodeNested |> JD.map TupledExpression )
-                , ( "list", JD.list decodeNested |> JD.map ListExpr )
-                , ( "parenthesized", decodeNested |> JD.map ParenthesizedExpression )
-                , ( "let", decodeLetBlock |> JD.map LetExpression )
-                , ( "case", decodeCaseBlock |> JD.map CaseExpression )
-                , ( "lambda", decodeLambda |> JD.map LambdaExpression )
-                , ( "recordAccess", JD.map2 RecordAccess (JD.field "expression" decodeNested) (JD.field "name" (Node.decoder JD.string)) )
-                , ( "recordAccessFunction", JD.string |> JD.map RecordAccessFunction )
-                , ( "record", JD.list (Node.decoder decodeRecordSetter) |> JD.map RecordExpr )
-                , ( "recordUpdate"
-                  , JD.map2 RecordUpdateExpression
-                        (JD.field "name" <| Node.decoder JD.string)
-                        (JD.field "updates" (JD.list <| Node.decoder decodeRecordSetter))
-                  )
-                , ( "glsl", JD.string |> JD.map GLSLExpression )
-                ]
-        )
-
-
-decodeRecordSetter : Decoder RecordSetter
-decodeRecordSetter =
-    JD.lazy
-        (\() ->
-            JD.map2 Tuple.pair
-                (JD.field "field" <| Node.decoder JD.string)
-                (JD.field "expression" decodeNested)
-        )
-
-
-decodeLambda : Decoder Lambda
-decodeLambda =
-    JD.lazy
-        (\() ->
-            JD.map2 Lambda
-                (JD.field "patterns" (JD.list (Node.decoder Pattern.decoder)))
-                (JD.field "expression" decodeNested)
-        )
-
-
-decodeCaseBlock : Decoder CaseBlock
-decodeCaseBlock =
-    JD.lazy
-        (\() ->
-            JD.map2 CaseBlock
-                (JD.field "expression" decodeNested)
-                (JD.field "cases" (JD.list decodeCase))
-        )
-
-
-decodeCase : Decoder Case
-decodeCase =
-    JD.lazy
-        (\() ->
-            JD.map2 Tuple.pair
-                (JD.field "pattern" (Node.decoder Pattern.decoder))
-                (JD.field "expression" decodeNested)
-        )
-
-
-decodeLetBlock : Decoder LetBlock
-decodeLetBlock =
-    JD.lazy
-        (\() ->
-            JD.map2 LetBlock
-                (JD.field "declarations" (JD.list decodeLetDeclaration))
-                (JD.field "expression" decodeNested)
-        )
-
-
-decodeLetDeclaration : Decoder (Node LetDeclaration)
-decodeLetDeclaration =
-    JD.lazy
-        (\() ->
-            Node.decoder
-                (decodeTyped
-                    [ ( "function", JD.map LetFunction functionDecoder )
-                    , ( "destructuring", JD.map2 LetDestructuring (JD.field "pattern" (Node.decoder Pattern.decoder)) (JD.field "expression" decodeNested) )
-                    ]
-                )
-        )
-
-
-decodeOperatorApplication : Decoder Expression
-decodeOperatorApplication =
-    JD.lazy
-        (\() ->
-            JD.map4 OperatorApplication
-                (JD.field "operator" JD.string)
-                (JD.field "direction" Infix.decodeDirection)
-                (JD.field "left" decodeNested)
-                (JD.field "right" decodeNested)
-        )
-
-
-decodeChar : Decoder Char
-decodeChar =
-    JD.string
-        |> JD.andThen
-            (\s ->
-                case String.uncons s of
-                    Just ( c, _ ) ->
-                        JD.succeed c
-
-                    Nothing ->
-                        JD.fail "Not a char"
-            )
-
-
-{-| JSON decoder for an `Function` syntax element.
--}
-functionDecoder : Decoder Function
-functionDecoder =
-    JD.lazy
-        (\() ->
-            JD.map3 Function
-                (JD.field "documentation" (JD.nullable <| Node.decoder Documentation.decoder))
-                (JD.field "signature" (JD.nullable (Node.decoder Signature.decoder)))
-                (JD.field "declaration" (Node.decoder decodeFunctionDeclaration))
-        )
-
-
-decodeFunctionDeclaration : Decoder FunctionImplementation
-decodeFunctionDeclaration =
-    JD.lazy
-        (\() ->
-            JD.map3 FunctionImplementation
-                (JD.field "name" (Node.decoder JD.string))
-                (JD.field "arguments" (JD.list (Node.decoder Pattern.decoder)))
-                (JD.field "expression" decodeNested)
-        )

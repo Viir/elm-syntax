@@ -1,6 +1,6 @@
 module Elm.Syntax.Import exposing
     ( Import
-    , encode, decoder
+    , encode
     )
 
 {-| This syntax represents imports in Elm.
@@ -23,7 +23,6 @@ For example:
 import Elm.Syntax.Exposing as Exposing exposing (Exposing)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Decode as JD exposing (Decoder)
 import Json.Encode as JE exposing (Value)
 
 
@@ -53,13 +52,3 @@ encode { moduleName, moduleAlias, exposingList } =
                 |> Maybe.withDefault JE.null
           )
         ]
-
-
-{-| JSON decoder for a `Import` syntax element.
--}
-decoder : Decoder Import
-decoder =
-    JD.map3 Import
-        (JD.field "moduleName" <| Node.decoder ModuleName.decoder)
-        (JD.field "moduleAlias" (JD.nullable <| Node.decoder ModuleName.decoder))
-        (JD.field "exposingList" (JD.nullable <| Node.decoder Exposing.decoder))
