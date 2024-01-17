@@ -1,7 +1,6 @@
 module Elm.Syntax.Module exposing
     ( Module(..), DefaultModuleData, EffectModuleData
     , exposingList, moduleName, isPortModule, isEffectModule
-    , encode
     )
 
 {-| This syntax represents module definitions in Elm.
@@ -27,7 +26,6 @@ import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Exposing as Exposing exposing (Exposing)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Union type for different kind of modules
@@ -108,40 +106,3 @@ isEffectModule m =
 
         _ ->
             False
-
-
-
--- Serialization
-
-
-{-| Encode a `Module` syntax element to JSON.
--}
-encode : Module -> Value
-encode m =
-    case m of
-        NormalModule d ->
-            encodeTyped "normal" (encodeDefaultModuleData d)
-
-        PortModule d ->
-            encodeTyped "port" (encodeDefaultModuleData d)
-
-        EffectModule d ->
-            encodeTyped "effect" (encodeEffectModuleData d)
-
-
-encodeEffectModuleData : EffectModuleData -> Value
-encodeEffectModuleData moduleData =
-    JE.object
-        [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
-        , ( "exposingList", Node.encode Exposing.encode moduleData.exposingList )
-        , ( "command", moduleData.command |> Maybe.map (Node.encode JE.string) |> Maybe.withDefault JE.null )
-        , ( "subscription", moduleData.subscription |> Maybe.map (Node.encode JE.string) |> Maybe.withDefault JE.null )
-        ]
-
-
-encodeDefaultModuleData : DefaultModuleData -> Value
-encodeDefaultModuleData moduleData =
-    JE.object
-        [ ( "moduleName", Node.encode ModuleName.encode moduleData.moduleName )
-        , ( "exposingList", Node.encode Exposing.encode moduleData.exposingList )
-        ]

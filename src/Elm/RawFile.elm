@@ -1,7 +1,6 @@
 module Elm.RawFile exposing
     ( RawFile
     , moduleName, imports
-    , encode
     )
 
 {-|
@@ -23,7 +22,6 @@ import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Module as Module
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node
-import Json.Encode exposing (Value)
 
 
 {-| A Raw file
@@ -44,10 +42,3 @@ moduleName (InternalRawFile.Raw file) =
 imports : RawFile -> List Import
 imports (InternalRawFile.Raw file) =
     List.map Node.value file.imports
-
-
-{-| Encode a file to a value
--}
-encode : RawFile -> Value
-encode (InternalRawFile.Raw file) =
-    File.encode file

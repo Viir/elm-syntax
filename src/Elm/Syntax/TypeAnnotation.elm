@@ -1,7 +1,4 @@
-module Elm.Syntax.TypeAnnotation exposing
-    ( TypeAnnotation(..), RecordDefinition, RecordField
-    , encode
-    )
+module Elm.Syntax.TypeAnnotation exposing (TypeAnnotation(..), RecordDefinition, RecordField)
 
 {-| This syntax represents the type annotation syntax.
 For example:
@@ -23,7 +20,6 @@ For example:
 import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Custom type for different type annotations. For example:
@@ -57,76 +53,3 @@ type alias RecordDefinition =
 -}
 type alias RecordField =
     ( Node String, Node TypeAnnotation )
-
-
-
--- Serialization
-
-
-{-| Encode a `TypeAnnotation` syntax element to JSON.
--}
-encode : TypeAnnotation -> Value
-encode typeAnnotation =
-    case typeAnnotation of
-        GenericType name ->
-            encodeTyped "generic" <|
-                JE.object
-                    [ ( "value", JE.string name )
-                    ]
-
-        Typed moduleNameAndName args ->
-            let
-                inner : ( ModuleName, String ) -> Value
-                inner ( mod, n ) =
-                    JE.object
-                        [ ( "moduleName", ModuleName.encode mod )
-                        , ( "name", JE.string n )
-                        ]
-            in
-            encodeTyped "typed" <|
-                JE.object
-                    [ ( "moduleNameAndName", Node.encode inner moduleNameAndName )
-                    , ( "args", JE.list (Node.encode encode) args )
-                    ]
-
-        Unit ->
-            encodeTyped "unit" (JE.object [])
-
-        Tupled t ->
-            encodeTyped "tupled" <|
-                JE.object
-                    [ ( "values", JE.list (Node.encode encode) t )
-                    ]
-
-        FunctionTypeAnnotation left right ->
-            encodeTyped "function" <|
-                JE.object
-                    [ ( "left", Node.encode encode left )
-                    , ( "right", Node.encode encode right )
-                    ]
-
-        Record recordDefinition ->
-            encodeTyped "record" <|
-                JE.object
-                    [ ( "value", encodeRecordDefinition recordDefinition )
-                    ]
-
-        GenericRecord name recordDefinition ->
-            encodeTyped "genericRecord" <|
-                JE.object
-                    [ ( "name", Node.encode JE.string name )
-                    , ( "values", Node.encode encodeRecordDefinition recordDefinition )
-                    ]
-
-
-encodeRecordDefinition : RecordDefinition -> Value
-encodeRecordDefinition =
-    JE.list (Node.encode encodeRecordField)
-
-
-encodeRecordField : RecordField -> Value
-encodeRecordField ( name, ref ) =
-    JE.object
-        [ ( "name", Node.encode JE.string name )
-        , ( "typeAnnotation", Node.encode encode ref )
-        ]

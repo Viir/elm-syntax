@@ -1,7 +1,6 @@
 module Elm.Syntax.Pattern exposing
     ( Pattern(..), QualifiedNameRef
     , moduleNames
-    , encode
     )
 
 {-| This syntax represents the patterns.
@@ -27,10 +26,8 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Json.Encode as JE exposing (Value)
 
 
 {-| Custom type for all patterns such as:
@@ -109,116 +106,3 @@ moduleNames p =
 
         _ ->
             []
-
-
-
--- Serialization
-
-
-{-| Encode a `Pattern` syntax element to JSON.
--}
-encode : Pattern -> Value
-encode pattern =
-    case pattern of
-        AllPattern ->
-            encodeTyped "all" (JE.object [])
-
-        UnitPattern ->
-            encodeTyped "unit" (JE.object [])
-
-        CharPattern c ->
-            encodeTyped "char"
-                (JE.object
-                    [ ( "value", JE.string <| String.fromChar c )
-                    ]
-                )
-
-        StringPattern v ->
-            encodeTyped "string"
-                (JE.object
-                    [ ( "value", JE.string v )
-                    ]
-                )
-
-        HexPattern h ->
-            encodeTyped "hex"
-                (JE.object
-                    [ ( "value", JE.int h )
-                    ]
-                )
-
-        IntPattern i ->
-            encodeTyped "int"
-                (JE.object
-                    [ ( "value", JE.int i )
-                    ]
-                )
-
-        FloatPattern f ->
-            encodeTyped "float"
-                (JE.object
-                    [ ( "value", JE.float f )
-                    ]
-                )
-
-        TuplePattern patterns ->
-            encodeTyped "tuple"
-                (JE.object
-                    [ ( "value", JE.list (Node.encode encode) patterns )
-                    ]
-                )
-
-        RecordPattern pointers ->
-            encodeTyped "record"
-                (JE.object
-                    [ ( "value", JE.list (Node.encode JE.string) pointers )
-                    ]
-                )
-
-        UnConsPattern p1 p2 ->
-            encodeTyped "uncons"
-                (JE.object
-                    [ ( "left", Node.encode encode p1 )
-                    , ( "right", Node.encode encode p2 )
-                    ]
-                )
-
-        ListPattern patterns ->
-            encodeTyped "list"
-                (JE.object
-                    [ ( "value", JE.list (Node.encode encode) patterns )
-                    ]
-                )
-
-        VarPattern name ->
-            encodeTyped "var"
-                (JE.object
-                    [ ( "value", JE.string name )
-                    ]
-                )
-
-        NamedPattern qualifiedNameRef patterns ->
-            encodeTyped "named" <|
-                JE.object
-                    [ ( "qualified"
-                      , JE.object
-                            [ ( "moduleName", ModuleName.encode qualifiedNameRef.moduleName )
-                            , ( "name", JE.string qualifiedNameRef.name )
-                            ]
-                      )
-                    , ( "patterns", JE.list (Node.encode encode) patterns )
-                    ]
-
-        AsPattern destructured name ->
-            encodeTyped "as" <|
-                JE.object
-                    [ ( "name", Node.encode JE.string name )
-                    , ( "pattern", Node.encode encode destructured )
-                    ]
-
-        ParenthesizedPattern p1 ->
-            encodeTyped "parentisized"
-                (JE.object
-                    [ ( "value", Node.encode encode p1 )
-                    ]
-                )

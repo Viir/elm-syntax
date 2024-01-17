@@ -1,7 +1,4 @@
-module Elm.Syntax.TypeAlias exposing
-    ( TypeAlias
-    , encode
-    )
+module Elm.Syntax.TypeAlias exposing (TypeAlias)
 
 {-| This syntax represents type aliases.
 For example:
@@ -28,7 +25,6 @@ For example:
 import Elm.Syntax.Documentation as Documentation exposing (Documentation)
 import Elm.Syntax.Node as Node exposing (Node)
 import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Type alias that defines the syntax for a type alias.
@@ -40,19 +36,3 @@ type alias TypeAlias =
     , generics : List (Node String)
     , typeAnnotation : Node TypeAnnotation
     }
-
-
-
--- Serialization
-
-
-{-| Encode a `TypeAlias` syntax element to JSON.
--}
-encode : TypeAlias -> Value
-encode { documentation, name, generics, typeAnnotation } =
-    JE.object
-        [ ( "documentation", Maybe.map (Node.encode Documentation.encode) documentation |> Maybe.withDefault JE.null )
-        , ( "name", Node.encode JE.string name )
-        , ( "generics", JE.list (Node.encode JE.string) generics )
-        , ( "typeAnnotation", Node.encode TypeAnnotation.encode typeAnnotation )
-        ]

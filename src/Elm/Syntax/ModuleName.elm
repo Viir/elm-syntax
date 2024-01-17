@@ -1,7 +1,4 @@
-module Elm.Syntax.ModuleName exposing
-    ( ModuleName
-    , encode
-    )
+module Elm.Syntax.ModuleName exposing (ModuleName)
 
 {-| This syntax represents the module names in Elm. These can be used for imports, module names (duh), and for qualified access.
 For example:
@@ -28,21 +25,8 @@ For example:
 
 -}
 
-import Json.Encode as JE exposing (Value)
-
 
 {-| Base representation for a module name
 -}
 type alias ModuleName =
     List String
-
-
-
--- Serialization
-
-
-{-| Encode a `ModuleName` syntax element to JSON.
--}
-encode : ModuleName -> Value
-encode =
-    JE.list JE.string

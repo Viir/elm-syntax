@@ -2,7 +2,6 @@ module Elm.Syntax.Range exposing
     ( Range, Location
     , empty, combine
     , compare, compareLocations
-    , encode
     , emptyRange
     )
 
@@ -73,18 +72,6 @@ Construct an empty range
 emptyRange : Range
 emptyRange =
     empty
-
-
-{-| Encode a range
--}
-encode : Range -> Value
-encode { start, end } =
-    JE.list JE.int
-        [ start.row
-        , start.column
-        , end.row
-        , end.column
-        ]
 
 
 {-| Compute the largest area of a list of ranges.

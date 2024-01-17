@@ -1,7 +1,6 @@
 module Elm.Syntax.Exposing exposing
     ( Exposing(..), TopLevelExpose(..), ExposedType
     , exposesFunction, operators
-    , encode
     )
 
 {-| This syntax represents the exposing declaration for both imports and module headers.
@@ -30,7 +29,6 @@ For example:
 import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Different kind of exposing declarations
@@ -104,55 +102,3 @@ operator t =
 
         _ ->
             Nothing
-
-
-
--- Serialization
-
-
-{-| Encode an `Exposing` syntax element to JSON.
--}
-encode : Exposing -> Value
-encode exp =
-    case exp of
-        All r ->
-            encodeTyped "all" <| Range.encode r
-
-        Explicit l ->
-            encodeTyped "explicit" (JE.list encodeTopLevelExpose l)
-
-
-encodeTopLevelExpose : Node TopLevelExpose -> Value
-encodeTopLevelExpose =
-    Node.encode
-        (\exp ->
-            case exp of
-                InfixExpose x ->
-                    encodeTyped "infix" <|
-                        JE.object
-                            [ ( "name", JE.string x )
-                            ]
-
-                FunctionExpose x ->
-                    encodeTyped "function" <|
-                        JE.object
-                            [ ( "name", JE.string x )
-                            ]
-
-                TypeOrAliasExpose x ->
-                    encodeTyped "typeOrAlias" <|
-                        JE.object
-                            [ ( "name", JE.string x )
-                            ]
-
-                TypeExpose exposedType ->
-                    encodeTyped "typeexpose" (encodeExposedType exposedType)
-        )
-
-
-encodeExposedType : ExposedType -> Value
-encodeExposedType { name, open } =
-    JE.object
-        [ ( "name", JE.string name )
-        , ( "open", open |> Maybe.map Range.encode |> Maybe.withDefault JE.null )
-        ]

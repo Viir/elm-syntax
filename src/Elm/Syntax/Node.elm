@@ -1,7 +1,6 @@
 module Elm.Syntax.Node exposing
     ( Node(..)
     , empty, combine, range, value, map
-    , encode
     )
 
 {-| Represents a `Node` of the AST (Abstract Syntax Tree).
@@ -27,7 +26,6 @@ element of the tree was found.
 -}
 
 import Elm.Syntax.Range as Range exposing (Range)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Base representation for a syntax node in a source file.
@@ -71,13 +69,3 @@ range (Node r _) =
 value : Node a -> a
 value (Node _ v) =
     v
-
-
-{-| Encode a `Node` into JSON
--}
-encode : (a -> Value) -> Node a -> Value
-encode f (Node r v) =
-    JE.object
-        [ ( "range", Range.encode r )
-        , ( "value", f v )
-        ]
