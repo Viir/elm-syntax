@@ -26,7 +26,6 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Range as Range exposing (Range)
 

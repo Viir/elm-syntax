@@ -22,7 +22,6 @@ For example:
 
 -}
 
-import Elm.Json.Util exposing (encodeTyped)
 import Elm.Syntax.Exposing as Exposing exposing (Exposing)
 import Elm.Syntax.ModuleName as ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
