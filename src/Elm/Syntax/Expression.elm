@@ -30,7 +30,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Range exposing (Range)
 import Elm.Syntax.Signature as Signature exposing (Signature)
-import Json.Encode as JE exposing (Value)
 
 
 {-| Type alias for a full function

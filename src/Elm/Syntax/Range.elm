@@ -36,8 +36,6 @@ See also [Basics.compare](https://package.elm-lang.org/packages/elm/core/latest/
 
 -}
 
-import Json.Encode as JE exposing (Value)
-
 
 {-| Source location
 -}
