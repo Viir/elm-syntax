@@ -2,9 +2,14 @@
 
 ## [Unreleased]
 
+## [7.3.9] - 2025-06-10
+
+- Fixed a bug where negation after a comma was considered incorrect syntax.
+- Fix an infinite recursion bug when the file would end with quotes or `[glsl|`
+
 ## [7.3.8] - 2024-12-07
 
-- Performance improvement of the parser (small improvement for optimized builds, **massive** improvement for non-optimized compilations, (thanks @miniBill!)
+- Performance improvement of the parser (small improvement for optimized builds, **massive** improvement for non-optimized compilations), (thanks @miniBill!)
 
 ## [7.3.7] - 2024-09-11
 
@@ -160,7 +165,8 @@ With this change some additional big changes were made to the projects and the d
 - Range information is added to a significant bigger set of AST elements.
 - The decoders and encoders for the specific AST elements are moved to their modules (`Elm.Syntax.*`).
 
-[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.8...HEAD
+[Unreleased]: https://github.com/stil4m/elm-syntax/compare/v7.3.9...HEAD
+[7.3.9]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.9
 [7.3.8]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.8
 [7.3.7]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.7
 [7.3.6]: https://github.com/stil4m/elm-syntax/releases/tag/7.3.6
